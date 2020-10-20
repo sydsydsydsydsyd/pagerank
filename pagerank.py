@@ -128,6 +128,7 @@ def sample_pagerank(corpus, damping_factor, n):
     print(f"count: {count}")
     """
 
+
     return pr
 
 
@@ -140,54 +141,43 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    """
 
-    # initialize pagrank dictionary with all values as 1/N
     N = len(corpus)
     pr = {}
+    links = set()
+
+    # treat items with no links as though linked to everything
+    for page in corpus:
+        if len(corpus[page]) == 0:
+            for l in corpus:
+                links.add(l)
+            corpus[page] = links
+
+    # initialize pagrank dictionary with all values as 1/N
     for page in corpus:
         pr[page] = 1 / N
 
-    margins = [False, False]
-    # keep looping until all margins are less than 0.001
-    #CAUSES INFINITE LOOP
-    while margins.count(True) != len(pr):
 
-        # go through every page in dictionary
-        for p in pr:
-            opr = pr[p]
+    while True:
+        counter = 0
+        current = pr.copy()
 
-            # get list of pages that reference p
-            all_i = []
-            for page in corpus:
-                # if page doesn't link to any others
-                if len(corpus[page]) == 0:
-                    all_i.append(page)
-                if p in corpus[page]:
-                    all_i.append(page)
 
-            # calculate P if not chosen randomly
-            for i in all_i:
-                adjust = damping_factor * (pr[i] / len(all_i))
+        for p in corpus:
+            rv = 0
+            for link in corpus:
+                if p in corpus[link]:
+                    rv += current[link] / len(corpus[link])
 
-            # total P
-            npr = ((1 - damping_factor) / N) + adjust
+            value = (1 - damping_factor) / N
+            pr[p] = value + (damping_factor * rv)
 
-            pr[p] = npr
+            if abs(current[p] - pr[p]) < 0.001:
+                counter += 1
+        if counter == len(corpus):
+            break
 
-            # update list of margins
-            margins.pop(0)
-            margins.append(abs(opr - npr) < 0.001)
-
-    # check if sum to 1
-    count = 0
-    for i in pr.values():
-        count += i
-    print(f"count: {count}")
-
-    return pr
-    """
-    return NotImplementedError
+    return current
 
 if __name__ == "__main__":
     main()
